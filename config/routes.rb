@@ -24,5 +24,14 @@ Rails.application.routes.draw do
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
   # Defines the root path route ("/")
-  # root "posts#index"
+  root "dashboard#index"
+
+  resources :watch_items, except: [:new, :edit]
+  resources :rotations do
+    resources :rotation_items, only: [:create, :update, :destroy]
+    member { post :next_episode }
+  end
+  resources :recommendations, only: [:index] do
+    collection { post :generate }
+  end
 end
