@@ -55,3 +55,13 @@ group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
 end
+
+gem "devise", "~> 5.0"
+
+gem "ruby_llm", "~> 1.14"
+
+gem "httparty", "~> 0.24.2"
+
+gem "pagy", "~> 43.5"
+
+gem "image_processing", "~> 1.14"
