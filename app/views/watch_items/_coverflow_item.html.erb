@@ -1,0 +1,6 @@
+<a href="<%= watch_item_path(watch_item) %>"
+   data-turbo-frame="modal"
+   data-info="<%= watch_item.title %>">
+  <%= image_tag watch_item.poster_url(size: "w185"), alt: watch_item.title,
+      style: "width:110px;height:163px;object-fit:cover;border-radius:4px;" %>
+</a>

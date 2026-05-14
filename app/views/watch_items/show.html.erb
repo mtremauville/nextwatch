@@ -1,2 +1,24 @@
-<h1>WatchItems#show</h1>
-<p>Find me in app/views/watch_items/show.html.erb</p>
+<turbo-frame id="modal">
+  <div class="modal-panel">
+    <button class="modal-close" data-action="click->modal#close" aria-label="Fermer">✕</button>
+    <div class="modal-body">
+      <% if @watch_item.poster_path.present? %>
+        <%= image_tag @watch_item.poster_url, alt: @watch_item.title, class: "modal-poster" %>
+      <% end %>
+      <div class="modal-info">
+        <div class="modal-meta">
+          <span class="media-card__type-badge"><%= @watch_item.movie? ? "Film" : "Série" %></span>
+          <% if @watch_item.vote_average.present? %>
+            <span class="media-card__rating">★ <%= @watch_item.vote_average %></span>
+          <% end %>
+        </div>
+        <h2 class="modal-title"><%= @watch_item.title %></h2>
+        <% if @watch_item.overview.present? %>
+          <p class="modal-overview"><%= @watch_item.overview %></p>
+        <% else %>
+          <p class="modal-overview modal-overview--empty">Aucun synopsis disponible.</p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</turbo-frame>

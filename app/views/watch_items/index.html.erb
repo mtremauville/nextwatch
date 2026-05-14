@@ -1,2 +1,22 @@
-<h1>WatchItems#index</h1>
-<p>Find me in app/views/watch_items/index.html.erb</p>
+<div class="dashboard">
+  <section class="dashboard-section">
+    <div class="section-header">
+      <h2 class="section-title">Ma liste <span class="section-count" id="all-items-count"><%= @watch_items.count %></span></h2>
+      <%= link_to "← Retour", root_path, class: "btn-ghost" %>
+    </div>
+
+    <% if @watch_items.any? %>
+      <div class="media-grid" id="watchlist">
+        <%= render partial: "watch_items/card", collection: @watch_items, as: :watch_item %>
+      </div>
+    <% else %>
+      <div class="empty-state">
+        <p class="empty-state__icon">▶</p>
+        <h2 class="empty-state__title">Ta liste est vide</h2>
+        <p class="empty-state__sub">
+          <%= link_to "Recherche un film ou une série", root_path %> pour commencer.
+        </p>
+      </div>
+    <% end %>
+  </section>
+</div>

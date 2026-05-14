@@ -1,2 +1,153 @@
-<h1>Dashboard#index</h1>
-<p>Find me in app/views/dashboard/index.html.erb</p>
+<div class="dashboard">
+
+  <%# ── HERO : prochain épisode de la rotation ──────────────────── %>
+  <% if @next_up %>
+    <section class="hero-next" data-controller="rotation">
+      <div class="hero-next__bg" style="background-image: url('<%= @next_up[:watch_item].poster_url(size: "w780") %>')"></div>
+      <div class="hero-next__overlay"></div>
+      <div class="hero-next__content">
+        <p class="hero-next__eyebrow">Ce soir dans ta rotation</p>
+        <h1 class="hero-next__title"><%= @next_up[:watch_item].title %></h1>
+        <p class="hero-next__episode">
+          <%= @next_up[:label] %>
+          <% if @next_up[:episode].present? %>
+            &mdash; <%= @next_up[:episode]["name"] %>
+          <% end %>
+        </p>
+        <div class="hero-next__actions">
+          <%= button_to "✓ Épisode vu",
+              next_episode_rotation_path(@rotation),
+              method: :post,
+              params: { rotation_item_id: @next_up[:rotation_item].id },
+              class: "btn-primary",
+              data: { turbo: false } %>
+          <%= link_to "Voir la rotation →", rotation_path(@rotation), class: "btn-ghost" %>
+        </div>
+      </div>
+      <% if @upcoming.any? %>
+        <div class="hero-next__upcoming">
+          <p class="upcoming__label">Ensuite</p>
+          <div class="upcoming__list">
+            <% @upcoming.drop(1).first(3).each do |entry| %>
+              <div class="upcoming__item">
+                <img src="<%= entry[:poster_url] %>" alt="<%= entry[:title] %>" class="upcoming__poster">
+                <div>
+                  <span class="upcoming__show"><%= entry[:title] %></span>
+                  <span class="upcoming__ep"><%= entry[:label] %></span>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </section>
+  <% end %>
+
+  <%# ── RECHERCHE TMDB ───────────────────────────────────────────── %>
+  <section class="search-section" data-controller="tmdb-search">
+    <div class="search-bar">
+      <span class="search-bar__icon">⌕</span>
+      <input
+        type="text"
+        class="search-bar__input"
+        placeholder="Ajouter un film ou une série…"
+        data-tmdb-search-target="input"
+        data-action="input->tmdb-search#search"
+        autocomplete="off"
+      >
+      <div class="search-bar__filters">
+        <button class="filter-btn active" data-action="click->tmdb-search#filterAll">Tout</button>
+        <button class="filter-btn" data-action="click->tmdb-search#filterMovies">Films</button>
+        <button class="filter-btn" data-action="click->tmdb-search#filterSeries">Séries</button>
+      </div>
+    </div>
+
+    <div class="search-results" data-tmdb-search-target="results"></div>
+  </section>
+
+  <%# ── EN COURS ─────────────────────────────────────────────────── %>
+  <% if @watching.any? %>
+    <section class="dashboard-section">
+      <h2 class="section-title">En cours <span class="section-count"><%= @watching.count %></span></h2>
+      <div class="media-grid" id="watching">
+        <%= render partial: "watch_items/card", collection: @watching, as: :watch_item %>
+      </div>
+    </section>
+  <% end %>
+
+  <%# ── RECOMMANDATIONS IA ───────────────────────────────────────── %>
+  <% if @recent_recommendations.any? %>
+    <section class="dashboard-section">
+      <div class="section-header">
+        <h2 class="section-title">Recommandations IA</h2>
+        <%= link_to "Tout voir →", recommendations_path, class: "section-more" %>
+      </div>
+      <div class="reco-grid">
+        <% @recent_recommendations.each do |reco| %>
+          <div class="reco-card" id="reco_<%= reco.id %>">
+            <img src="<%= reco.poster_url %>" alt="<%= reco.title %>" class="reco-card__poster">
+            <div class="reco-card__body">
+              <h3 class="reco-card__title"><%= reco.title %></h3>
+              <p class="reco-card__reason">✦ <%= reco.reason %></p>
+              <div class="reco-card__actions">
+                <%= button_to "+ Ajouter",
+                    watch_items_path,
+                    method: :post,
+                    params: {
+                      watch_item: {
+                        tmdb_id: reco.tmdb_id, media_type: reco.media_type,
+                        title: reco.title, poster_path: reco.poster_path,
+                        status: "watchlist"
+                      }
+                    },
+                    class: "btn-small" %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </section>
+  <% end %>
+
+
+  <%# ── ÉTAT VIDE ────────────────────────────────────────────────── %>
+  <% if @watching.empty? && @watchlist.empty? && @rotation.nil? %>
+    <div class="empty-state" id="empty-state">
+      <p class="empty-state__icon">▶</p>
+      <h2 class="empty-state__title">Ta liste est vide</h2>
+      <p class="empty-state__sub">Recherche un film ou une série ci-dessus pour commencer.</p>
+    </div>
+  <% end %>
+
+</div>
+
+<% coverflow_items = (@watching + @watchlist + @completed).uniq %>
+<% if coverflow_items.any? %>
+  <% content_for :coverflow do %>
+    <div class="coverflow-shelf">
+      <p class="coverflow-shelf__label">Ma médiathèque</p>
+      <div class="coverflow-shelf__wrap">
+        <div id="main-coverflow"
+             data-controller="coverflow"
+             data-size="110"
+             data-spacing="16"
+             data-bgcolor="#0a0a0f">
+          <% coverflow_items.each do |item| %>
+            <a href="<%= watch_item_path(item) %>"
+               data-turbo-frame="modal"
+               data-info="<%= item.title %>">
+              <%= image_tag item.poster_url(size: 'w185'), alt: item.title,
+                  style: "width:110px;height:163px;object-fit:cover;border-radius:4px;font-size:8px;" %>
+            </a>
+          <% end %>
+        </div>
+        <div class="coverflow-shelf__arrows-overlay">
+          <button type="button" class="coverflow-shelf__arrow coverflow-shelf__arrow--left" aria-label="Précédent">&#8249;</button>
+
+
+          <button type="button" class="coverflow-shelf__arrow coverflow-shelf__arrow--right" aria-label="Suivant">&#8250;</button>
+        </div>
+      </div>
+    </div>
+  <% end %>
+<% end %>

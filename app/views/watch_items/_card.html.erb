@@ -1,0 +1,43 @@
+<div class="media-card" id="watch_item_<%= watch_item.id %>">
+  <div class="media-card__poster-wrap">
+    <% if watch_item.poster_path.present? %>
+      <img src="<%= watch_item.poster_url %>" alt="<%= watch_item.title %>" class="media-card__poster" loading="lazy">
+    <% else %>
+      <div class="media-card__poster-placeholder">▶</div>
+    <% end %>
+    <div class="media-card__overlay">
+      <div class="media-card__actions">
+        <% if watch_item.watchlist? %>
+          <%= button_to "▶ Commencer",
+              watch_item_path(watch_item),
+              method: :patch,
+              params: { watch_item: { status: "watching", current_season: 1, current_episode: 1 } },
+              class: "card-btn",
+              data: { turbo_stream: true } %>
+        <% elsif watch_item.watching? %>
+          <%= button_to "✓ Terminé",
+              watch_item_path(watch_item),
+              method: :patch,
+              params: { watch_item: { status: "completed" } },
+              class: "card-btn card-btn--success",
+              data: { turbo_stream: true } %>
+        <% end %>
+        <%= button_to "✕",
+            watch_item_path(watch_item),
+            method: :delete,
+            class: "card-btn card-btn--danger card-btn--icon",
+            data: { turbo_stream: true, confirm: "Supprimer #{watch_item.title} ?" } %>
+      </div>
+    </div>
+    <% if watch_item.tv? && watch_item.watching? %>
+      <span class="media-card__episode-badge"><%= watch_item.next_episode_label %></span>
+    <% end %>
+    <span class="media-card__type-badge"><%= watch_item.movie? ? "Film" : "Série" %></span>
+  </div>
+  <%= link_to watch_item_path(watch_item), class: "media-card__info", data: { turbo_frame: "modal" } do %>
+    <h3 class="media-card__title"><%= watch_item.title %></h3>
+    <% if watch_item.vote_average.present? %>
+      <span class="media-card__rating">★ <%= watch_item.vote_average %></span>
+    <% end %>
+  <% end %>
+</div>

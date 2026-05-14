@@ -26,11 +26,15 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   root "dashboard#index"
 
-  resources :watch_items, except: [:new, :edit]
+  resources :watch_items, except: [:new, :edit] do
+    collection { get :search }
+  end
+
   resources :rotations do
     resources :rotation_items, only: [:create, :update, :destroy]
     member { post :next_episode }
   end
+  
   resources :recommendations, only: [:index] do
     collection { post :generate }
   end
